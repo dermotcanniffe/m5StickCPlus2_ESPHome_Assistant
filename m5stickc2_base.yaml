@@ -1,10 +1,3 @@
-esphome:
-  # Crucial: Relative path works best when inside the same remote folder
-  includes:
-    - github://dermotcanniffe/m5StickCPlus2_ESPHome_Assistant/watch_logic.h@main
-  libraries:
-    - deque
-
 esp32:
   board: m5stick-c
   framework:
