@@ -1,5 +1,5 @@
 esphome:
-  # Crucial: Use the local path for the header when inside a package
+  # Crucial: Relative path works best when inside the same remote folder
   includes:
     - watch_logic.h
   libraries:
@@ -74,11 +74,30 @@ sensor:
     id: battery_voltage
     update_interval: 10s
     filters: [{multiply: 2.0}]
+    on_value:
+      then:
+        - component.update: battery_percentage
+
+  - platform: template
+    name: "Battery Percentage"
+    id: battery_percentage
+    unit_of_measurement: "%"
+    lambda: |-
+      if (!id(battery_voltage).has_state()) return 0.0;
+      float v = id(battery_voltage).state;
+      float p = (v - 3.0) / (4.2 - 3.0) * 100.0;
+      return clamp(p, 0.0f, 100.0f);
+
+binary_sensor:
+  - platform: template
+    id: charging_status
+    lambda: "return true;" # Simplified placeholder
 
 color:
   - {id: my_black, red: 0%, green: 0%, blue: 0%}
   - {id: my_green, red: 0%, green: 100%, blue: 0%}
   - {id: my_blue, red: 0%, green: 0%, blue: 100%}
+  - {id: my_red, red: 100%, green: 0%, blue: 0%}
 
 font:
   - file: "gfonts://LXGW WenKai Mono TC"

@@ -14,7 +14,6 @@ class WatchRenderer {
     std::string line_buffer;
     size_t current_char_index = 0;
     size_t current_token_index = 0;
-    size_t last_space_index = std::string::npos;
     std::vector<std::string> tokens;
     
     enum Mode { CHAR_MODE, WORD_MODE, FULL_MODE };
@@ -40,7 +39,6 @@ class WatchRenderer {
             lines.clear();
             text_buffer = response;
             line_buffer.clear();
-            last_space_index = std::string::npos;
             current_char_index = 0;
             current_token_index = 0;
 
