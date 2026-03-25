@@ -1,7 +1,7 @@
 esphome:
   # Crucial: Relative path works best when inside the same remote folder
   includes:
-    - watch_logic.h
+    - github://dermotcanniffe/m5StickCPlus2_ESPHome_Assistant/watch_logic.h@main
   libraries:
     - deque
 
