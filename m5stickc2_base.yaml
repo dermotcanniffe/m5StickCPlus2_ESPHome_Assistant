@@ -1,0 +1,82 @@
+# Hardware Abstraction for M5StickC Plus2
+esphome:
+  # Pull in the logic header relative to this file
+  includes:
+    - watch_logic.h
+  # Fixes the 'deque' error from your logs by explicitly requiring the library
+  libraries:
+    - deque
+
+esp32:
+  board: m5stick-c
+  framework:
+    type: arduino
+  flash_size: 8MB
+
+substitutions:
+  devicename: m5stickc-plus2
+  upper_devicename: M5StickC PLUS2
+
+# Power Management: Hold GPIO4 high to stay powered on battery
+output:
+  - platform: gpio
+    id: hold_pin
+    pin:
+      number: GPIO4
+      mode: OUTPUT
+
+# Display Driver (ST7789V via ILI9XXX)
+display:
+  - platform: ili9xxx
+    model: st7789v
+    cs_pin: GPIO5
+    dc_pin: GPIO14
+    reset_pin: GPIO12
+    rotation: 90
+    dimensions:
+      height: 240
+      width: 135
+      offset_height: 40
+      offset_width: 52
+    invert_colors: true
+    update_interval: 150ms
+
+# Audio I/O for Internal Mic and SPK2 Hat
+i2s_audio:
+  - id: bus_internal
+    i2s_lrclk_pin: GPIO0
+    i2s_bclk_pin: GPIO26
+
+microphone:
+  - platform: i2s_audio
+    id: stickc_microphone
+    i2s_audio_id: bus_internal
+    i2s_din_pin: GPIO34
+    adc_type: external
+    pdm: true
+    channel: left
+
+speaker:
+  - platform: i2s_audio
+    id: media_out
+    dac_type: external
+    i2s_dout_pin: GPIO25
+
+# Standard UI Colors
+color:
+  - id: my_black
+    red: 0%
+    green: 0%
+    blue: 0%
+  - id: my_green
+    red: 0%
+    green: 100%
+    blue: 0%
+  - id: my_blue
+    red: 0%
+    green: 0%
+    blue: 100%
+  - id: my_red
+    red: 100%
+    green: 0%
+    blue: 0%
