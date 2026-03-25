@@ -8,6 +8,10 @@ substitutions:
   devicename: m5stickc-plus2
   upper_devicename: M5StickC PLUS2
 
+spi:
+  clk_pin: GPIO13
+  mosi_pin: GPIO15
+
 output:
   - platform: gpio
     id: hold_pin
