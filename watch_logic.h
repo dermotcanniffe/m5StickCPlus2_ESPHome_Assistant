@@ -7,10 +7,9 @@
 
 namespace watch_assistant {
 
-// Use a class to maintain state across display update cycles
 class WatchRenderer {
  public:
-    // State variables
+    // Rendering state persistent across display updates
     std::deque<std::string> lines;
     std::string text_buffer;
     std::string line_buffer;
@@ -19,8 +18,8 @@ class WatchRenderer {
     size_t last_space_index = std::string::npos;
     std::vector<std::string> tokens;
     
-    enum ProcessingMode { CHAR_MODE, WORD_MODE, FULL_MODE };
-    ProcessingMode last_process_mode = FULL_MODE;
+    enum Mode { CHAR_MODE, WORD_MODE, FULL_MODE };
+    Mode last_process_mode = FULL_MODE;
 
     void render(esphome::display::DisplayBuffer &it, 
                 std::string response, 
@@ -32,14 +31,14 @@ class WatchRenderer {
         const int max_chars_per_line = 26;
         const int max_lines = 8;
 
-        // Map string to Enum
-        ProcessingMode process_mode = FULL_MODE;
+        // Map selection string to Enum
+        Mode process_mode = FULL_MODE;
         if (selected_mode_str == "Character Mode") process_mode = CHAR_MODE;
         else if (selected_mode_str == "Word Mode") process_mode = WORD_MODE;
 
         bool mode_changed = (process_mode != last_process_mode);
 
-        // Reset logic if content or mode changes
+        // Reset tracking if the text, mode, or manual refresh changes
         if (text_buffer != response || mode_changed || button_pressed) {
             lines.clear();
             text_buffer = response;
@@ -52,22 +51,23 @@ class WatchRenderer {
                 tokens.clear();
                 size_t pos = 0;
                 while (pos < text_buffer.length()) {
-                    char c = text_buffer[pos];
-                    if (c == '\n') { tokens.push_back("\n"); pos++; }
-                    else if (isspace(c)) {
+                    char current_char = text_buffer[pos];
+                    if (current_char == '\n') {
+                        tokens.push_back("\n");
+                        pos++;
+                    } else if (isspace(current_char)) {
                         size_t start = pos;
                         while (pos < text_buffer.length() && isspace(text_buffer[pos]) && text_buffer[pos] != '\n') pos++;
                         tokens.push_back(text_buffer.substr(start, pos - start));
                     } else {
                         size_t start = pos;
-                        while (pos < text_buffer.length() && !isspace(text_buffer[pos])) pos++;
+                        while (pos < text_buffer.length() && !isspace(text_buffer[pos]) && text_buffer[pos] != '\n') pos++;
                         tokens.push_back(text_buffer.substr(start, pos - start));
                     }
                 }
             }
 
             if (process_mode == FULL_MODE) {
-                // Pre-calculate all lines for Full Mode
                 for (const auto& token : tokens) {
                     if (token == "\n") {
                         if (lines.size() >= max_lines) lines.pop_front();
@@ -78,9 +78,14 @@ class WatchRenderer {
                     if (line_buffer.length() + token.length() <= max_chars_per_line) {
                         line_buffer += token;
                     } else {
-                        if (lines.size() >= max_lines) lines.pop_front();
-                        lines.push_back(line_buffer);
-                        line_buffer = token;
+                        if (!line_buffer.empty()) {
+                            if (lines.size() >= max_lines) lines.pop_front();
+                            lines.push_back(line_buffer);
+                            line_buffer = token;
+                        } else {
+                            // Split oversized token
+                            line_buffer = token.substr(0, max_chars_per_line);
+                        }
                     }
                 }
                 if (!line_buffer.empty()) {
@@ -92,7 +97,7 @@ class WatchRenderer {
             last_process_mode = process_mode;
         }
 
-        // Incremental Processing for Char/Word modes
+        // Incremental Processing (The Typewriter Effect)
         if (process_mode == CHAR_MODE && current_char_index < text_buffer.length()) {
             char next_char = text_buffer[current_char_index++];
             if (next_char == '\n') {
@@ -122,22 +127,19 @@ class WatchRenderer {
             }
         }
 
-        // Drawing Logic
-        it.fill(esphome::display::COLOR_OFF);
-        
-        int y = 0;
+        // Final Rendering Pass
+        int y_offset = 0;
         for (const auto& line : lines) {
-            it.print(0, y, font, color_text, line.c_str());
-            y += 16;
+            it.print(0, y_offset, font, color_text, line.c_str());
+            y_offset += 16;
         }
-        // Draw the temporary line_buffer if it's not empty (typewriter effect)
         if (!line_buffer.empty()) {
-            it.print(0, y, font, color_text, line_buffer.c_str());
+            it.print(0, y_offset, font, color_text, line_buffer.c_str());
         }
     }
 };
 
 } // namespace watch_assistant
 
-// Global instance to persist state
+// Global instance to maintain state across update frames
 static watch_assistant::WatchRenderer renderer;

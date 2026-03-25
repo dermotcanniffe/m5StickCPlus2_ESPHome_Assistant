@@ -1,9 +1,6 @@
-# Hardware Abstraction for M5StickC Plus2
 esphome:
-  # Pull in the logic header relative to this file
   includes:
-    - watch_logic.h
-  # Fixes the 'deque' error from your logs by explicitly requiring the library
+    - github://dermotcanniffe/m5StickCPlus2_ESPHome_Assistant/watch_logic.h@main
   libraries:
     - deque
 
@@ -17,7 +14,6 @@ substitutions:
   devicename: m5stickc-plus2
   upper_devicename: M5StickC PLUS2
 
-# Power Management: Hold GPIO4 high to stay powered on battery
 output:
   - platform: gpio
     id: hold_pin
@@ -25,7 +21,6 @@ output:
       number: GPIO4
       mode: OUTPUT
 
-# Display Driver (ST7789V via ILI9XXX)
 display:
   - platform: ili9xxx
     model: st7789v
@@ -41,7 +36,6 @@ display:
     invert_colors: true
     update_interval: 150ms
 
-# Audio I/O for Internal Mic and SPK2 Hat
 i2s_audio:
   - id: bus_internal
     i2s_lrclk_pin: GPIO0
@@ -62,7 +56,16 @@ speaker:
     dac_type: external
     i2s_dout_pin: GPIO25
 
-# Standard UI Colors
+sensor:
+  - platform: adc
+    pin: GPIO38
+    attenuation: 12db
+    name: "Battery Voltage"
+    id: battery_voltage
+    update_interval: 10s
+    filters:
+      - multiply: 2.0
+
 color:
   - id: my_black
     red: 0%
@@ -80,3 +83,8 @@ color:
     red: 100%
     green: 0%
     blue: 0%
+
+font:
+  - file: "gfonts://LXGW WenKai Mono TC"
+    id: font_id
+    size: 18
