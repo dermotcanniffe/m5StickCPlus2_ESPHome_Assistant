@@ -16,6 +16,29 @@ output:
   - platform: gpio
     id: hold_pin
     pin: {number: GPIO4, mode: OUTPUT}
+  # Backlight TFT LCD
+  - platform: ledc
+    pin: 27
+    id: backlight
+  # Built-in LED
+  - platform: ledc
+    pin: GPIO19
+    id: builtin_led
+  # Buzzer
+  - platform: ledc
+    pin: GPIO2
+    id: buzzer
+
+light:
+  - platform: monochromatic
+    output: backlight
+    name: "${upper_devicename} Backlight"
+    id: display_bl
+    restore_mode: RESTORE_DEFAULT_ON
+  - platform: monochromatic
+    output: builtin_led
+    name: "${upper_devicename} Led"
+    id: led1
 
 display:
   - platform: ili9xxx
@@ -48,6 +71,10 @@ speaker:
     id: media_out
     dac_type: external
     i2s_dout_pin: GPIO25
+
+logger:
+
+captive_portal:
 
 text_sensor:
   - platform: template
