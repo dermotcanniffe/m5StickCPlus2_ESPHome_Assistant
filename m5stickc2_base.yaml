@@ -1,7 +1,7 @@
+# GitHub: m5stickc2_base.yaml
 esp32:
   board: m5stick-c
-  framework:
-    type: arduino
+  framework: {type: arduino}
   flash_size: 8MB
 
 substitutions:
@@ -20,7 +20,7 @@ output:
 display:
   - platform: ili9xxx
     model: st7789v
-    id: watch_display
+    id: watch_display  # The anchor ID for !extend
     cs_pin: GPIO5
     dc_pin: GPIO14
     reset_pin: GPIO12
@@ -53,48 +53,29 @@ text_sensor:
   - platform: template
     id: display_text
     internal: true
-    update_interval: never
 
 select:
   - platform: template
-    name: "Output Mode"
     id: output_mode_select
     options: ["Character Mode", "Word Mode", "Full Mode"]
-    initial_option: "Full Mode"
     optimistic: true
 
 sensor:
   - platform: adc
     pin: GPIO38
-    attenuation: 12db
-    name: "Battery Voltage"
     id: battery_voltage
-    update_interval: 10s
     filters: [{multiply: 2.0}]
-    on_value:
-      then:
-        - component.update: battery_percentage
-
   - platform: template
-    name: "Battery Percentage"
     id: battery_percentage
     unit_of_measurement: "%"
     lambda: |-
       if (!id(battery_voltage).has_state()) return 0.0;
-      float v = id(battery_voltage).state;
-      float p = (v - 3.0) / (4.2 - 3.0) * 100.0;
+      float p = (id(battery_voltage).state - 3.0) / 1.2 * 100.0;
       return clamp(p, 0.0f, 100.0f);
-
-binary_sensor:
-  - platform: template
-    id: charging_status
-    lambda: "return true;" # Simplified placeholder
 
 color:
   - {id: my_black, red: 0%, green: 0%, blue: 0%}
   - {id: my_green, red: 0%, green: 100%, blue: 0%}
-  - {id: my_blue, red: 0%, green: 0%, blue: 100%}
-  - {id: my_red, red: 100%, green: 0%, blue: 0%}
 
 font:
   - file: "gfonts://LXGW WenKai Mono TC"
